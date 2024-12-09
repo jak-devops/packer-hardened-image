@@ -1,0 +1,20 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ubuntu-hardened
+    username: admin
+    password: "$6$admin$Hj3N8I1sKGMiE2GdZL/gozXq/BaoERQy.NXdYkeJJwDuqRD/bTT6tKolDMLVYoQQRVFjdvRo52L9mB/1QsYTk."
+  storage:
+    layout:
+      name: direct
+  packages:
+    - ufw
+    - fail2ban
+    - aide
+    - unattended-upgrades
+  security:
+    - enable_harden_config: true
+  late-commands:
+    - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /target/etc/ssh/sshd_config
+    - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /target/etc/ssh/sshd_config

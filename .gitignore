@@ -1,0 +1,5 @@
+# Ignore le fichier de variables sensibles
+secrets.auto.pkrvars.hcl
+
+# Ignore le dossier de sortie
+output/
