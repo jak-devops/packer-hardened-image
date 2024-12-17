@@ -1,20 +1,39 @@
 #cloud-config
 autoinstall:
-  version: 1
+  version: 1 # Version de l'outil d'installation automatisée d'Ubuntu
+
+  # Configuration de l'identité de la machine
   identity:
-    hostname: ubuntu-hardened
-    username: admin
+    hostname: ubuntu-hardened # Nom d'hôte de la machine
+    username: admin # Nom d'utilisateur principal
     password: "$6$admin$Hj3N8I1sKGMiE2GdZL/gozXq/BaoERQy.NXdYkeJJwDuqRD/bTT6tKolDMLVYoQQRVFjdvRo52L9mB/1QsYTk."
+    # Mot de passe chiffré SHA-512. Utilisez `mkpasswd -m sha-512` pour en générer un nouveau.
+    keyboard:
+      layout: us # Disposition du clavier
+
+  # Configuration du stockage
   storage:
     layout:
-      name: direct
+      name: lvm # Utilisation de LVM pour le partitionnement des disques (facilite la gestion future du stockage)
+
+  # Installation de paquets supplémentaires pour la sécurité
   packages:
-    - ufw
-    - fail2ban
-    - aide
-    - unattended-upgrades
+    - ufw # Firewall simple pour sécuriser les ports
+    - fail2ban # Protection contre les attaques brute-force
+    - aide # Outil de détection d'intrusions basé sur l'intégrité des fichiers
+    - unattended-upgrades # Mises à jour automatiques des paquets de sécurité
+
+  # Configuration de sécurité (personnalisée si applicable)
   security:
-    - enable_harden_config: true
+    - enable_harden_config: true # (OPTIONNEL) Activer des configurations de durcissement personnalisées
+
+  # Commandes exécutées tardivement après l'installation de base
   late-commands:
+    # Désactive l'authentification par mot de passe pour SSH
     - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /target/etc/ssh/sshd_config
+
+    # Interdit la connexion directe de l'utilisateur root via SSH
     - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /target/etc/ssh/sshd_config
+
+    # Redémarre le service SSH pour appliquer les modifications
+    - chroot /target systemctl restart ssh

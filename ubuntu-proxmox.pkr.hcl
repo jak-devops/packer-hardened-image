@@ -1,3 +1,4 @@
+# Déclaration des plugins requis pour Packer
 packer {
   required_plugins {
     proxmox = {
@@ -7,6 +8,7 @@ packer {
   }
 }
 
+# Variables pour les credentials et configurations Proxmox
 variable "proxmox_url" {
   type = string
 }
@@ -31,65 +33,64 @@ variable "ssh_password" {
   type = string
 }
 
+# Définition de la source Packer pour Proxmox
 source "proxmox-iso" "ubuntu-hardened" {
-  proxmox_url             = var.proxmox_url
-  username                = var.proxmox_username
-  password                = var.proxmox_password
-  node                    = var.proxmox_node
-  insecure_skip_tls_verify = true
+  proxmox_url               = var.proxmox_url
+  username                  = var.proxmox_username
+  password                  = var.proxmox_password
+  node                      = var.proxmox_node
+  insecure_skip_tls_verify  = true   # Ignore la vérification TLS pour les connexions non sécurisées
 
-  # Boot ISO configuration
+  # Commandes pour automatiser le démarrage de l'ISO (boot_command)
+  boot_command = [
+
+  ]
+
+  # Configuration ISO pour la machine virtuelle
   boot_iso {
-    type     = "scsi"
-    iso_file = "local:iso/ubuntu-22.04.5-live-server-amd64.iso"
+    type       = "scsi"
+    iso_file   = "local:iso/ubuntu-22.04.5-live-server-amd64.iso"
     iso_checksum = "sha256:9bc6028870aef3f74f4e16b900008179e78b130e6b0b9a140635434a46aa98b0"
-    unmount  = true
+    unmount    = true
   }
 
-  # VM Configuration
+  # Configuration de la VM
   vm_id         = 9000
   vm_name       = "ubuntu-hardened"
   template_name = "ubuntu-hardened-template"
 
-  # Network configuration
+  # Configuration réseau de la VM
   network_adapters {
-    model  = "virtio"
-    bridge = "vmbr0"
+    model  = "virtio"  # Utilise le modèle "virtio" pour de meilleures performances
+    bridge = "vmbr0"   # Pont réseau utilisé sur Proxmox
   }
 
-  # Disk configuration
+  # Configuration des disques de la VM
   disks {
-    type         = "scsi"
-    storage_pool = "local-lvm"
-    disk_size    = "20G"
+    type         = "scsi"       # Utilisation du stockage SCSI
+    storage_pool = "local-lvm"  # Pool de stockage dans Proxmox
+    disk_size    = "8G"         # Taille du disque de la VM
   }
 
-  # HTTP configuration for cloud-init
-  http_directory = "config"
+  # Configuration HTTP pour Cloud-init (pour automatiser l'installation de l'OS)
+  http_directory = "http"  # Répertoire local pour les fichiers Cloud-init
 
-  # Boot commands
-  boot_command = [
-    "<wait>",
-    "linux /casper/vmlinuz --- autoinstall ds=nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/",
-    "<enter><wait>",
-    "initrd /casper/initrd<enter><wait>",
-    "boot<enter>"
-  ]
-
-  # SSH configuration
+  # Configuration SSH pour la VM
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
 }
 
+# Bloc Build : définit le processus de construction
 build {
   sources = ["source.proxmox-iso.ubuntu-hardened"]
 
+  # Provisioner "shell" pour exécuter des scripts après la création de la VM
   provisioner "shell" {
     scripts = [
-      "scripts/updates.sh",
-      "scripts/hardening.sh",
-      "scripts/cleanup.sh"
+      "scripts/updates.sh",     # Script pour appliquer les mises à jour système
+      "scripts/hardening.sh",   # Script pour appliquer des mesures de sécurisation (hardening)
+      "scripts/cleanup.sh"      # Script pour nettoyer la VM (ex: supprimer les fichiers inutiles)
     ]
   }
 }
