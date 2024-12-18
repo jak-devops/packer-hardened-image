@@ -86,11 +86,11 @@ build {
   sources = ["source.proxmox-iso.ubuntu-hardened"]
 
   # Provisioner "shell" pour exécuter des scripts après la création de la VM
-  provisioner "shell" {
-    scripts = [
-      "scripts/updates.sh",     # Script pour appliquer les mises à jour système
-      "scripts/hardening.sh",   # Script pour appliquer des mesures de sécurisation (hardening)
-      "scripts/cleanup.sh"      # Script pour nettoyer la VM (ex: supprimer les fichiers inutiles)
-    ]
-  }
+provisioner "shell" {
+  inline = [
+    "bash scripts/updates.sh",       # Appliquer les mises à jour
+    "bash scripts/hardening.sh",     # Appliquer les mesures de sécurisation
+    "bash scripts/validate.sh",      # Valider les étapes précédentes
+    "if [ $? -eq 0 ]; then bash scripts/cleanup.sh; else echo 'Validation échouée, arrêt.' && exit 1; fi"
+  ]
 }

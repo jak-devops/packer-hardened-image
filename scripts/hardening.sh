@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+echo "Application des mesures de sécurisation..."
+
 # Désactiver les services inutiles
 systemctl disable bluetooth.service
 systemctl disable cups.service
@@ -33,3 +35,6 @@ echo "install hfs /bin/true" >> /etc/modprobe.d/disable-hfs.conf
 echo "install hfsplus /bin/true" >> /etc/modprobe.d/disable-hfsplus.conf
 echo "install squashfs /bin/true" >> /etc/modprobe.d/disable-squashfs.conf
 echo "install udf /bin/true" >> /etc/modprobe.d/disable-udf.confgit
+
+# Créer un indicateur si tout est OK
+touch /tmp/hardening_done
